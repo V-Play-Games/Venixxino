@@ -9,8 +9,6 @@ Venixxino is an educational web application designed to help visualize the elect
 ## Demo Video
 [![Demo Video](https://img.shields.io/badge/Watch%20Demo-Video-blue)](https://hc-cdn.hel1.your-objectstorage.com/s/v3/0982ea41d87ae655372ed087dc16c4b8cfcfb3c7_screen_recording_2025-06-11_164821.mp4)
 
-<video src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/0982ea41d87ae655372ed087dc16c4b8cfcfb3c7_screen_recording_2025-06-11_164821.mp4" controls width="600"></video>
-
 ## Demo Screenshots
 
 ![Screenshot 1](https://hc-cdn.hel1.your-objectstorage.com/s/v3/a08014e964f0473e7b488a15c7d725d6442c8c7a_screenshot_2025-06-26_003530.png)
