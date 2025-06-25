@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>3D Atomic</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-environment-component@1.3.3/dist/aframe-environment-component.min.js"></script>
+    <script src="https://unpkg.com/aframe-orbit-controls@1.3.2/dist/aframe-orbit-controls.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=cancel,dehaze"
+        rel="stylesheet" />
+</head>
+
+<body>
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -250px;
+            height: 100%;
+            width: 250px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 1%;
+            right: 1%;
+            background-color: transparent;
+            transition: opacity 0.3s ease;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 100%;
+            z-index: 1001;
+        }
+
+        .sidebar-toggle.off {
+            opacity: 0;
+        }
+
+        .sidebar h2 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+
+        .sidebar-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+
+    <div class="sidebar" id="sidebar">
+        <h2>Controls</h2>
+        <button class="sidebar-close" onclick="toggleSidebar()">
+            <span class="material-symbols-outlined">cancel</span>
+        </button>
+        <p>Orbit: Click and drag to orbit around the scene</p>
+        <p>Zoom: Scroll/Pinch to zoom in/out</p>
+        <p>Pan: Right click and drag/Use two fingers to pan the camera</p>
+        <h3>Scene Options</h3>
+        <div>
+            <label for="environmentSelector">Environment:</label>
+            <select id="environmentSelector" onchange="changeEnvironment()">
+                <option value="arches">Arches</option>
+                <option value="checkerboard">Checkerboard</option>
+                <option value="contact">Contact</option>
+                <option value="default">Default</option>
+                <option value="dream">Dream</option>
+                <option value="egypt">Egypt</option>
+                <option value="forest" selected="selected">Forest</option>
+                <option value="goaland">Goaland</option>
+                <option value="goldmine">Goldmine</option>
+                <option value="japan">Japan</option>
+                <option value="moon">Moon</option>
+                <option value="osiris">Osiris</option>
+                <option value="poison">Poison</option>
+                <option value="starry">Starry</option>
+                <option value="threetowers">Three Towers</option>
+                <option value="tron">Tron</option>
+                <option value="volcano">Volcano</option>
+                <option value="yavapai">Yavapai</option>
+            </select>
+        </div>
+        <h3>Element Selector</h3>
+        <div>
+            <label for="elementSelector">Element:</label>
+            <select id="elementSelector" onchange="changeElement()">
+                <option value="1">Hydrogen (H)</option>
+                <option value="2">Helium (He)</option>
+                <option value="3">Lithium (Li)</option>
+                <option value="4">Beryllium (Be)</option>
+                <option value="5">Boron (B)</option>
+                <option value="6">Carbon (C)</option>
+                <option value="7">Nitrogen (N)</option>
+                <option value="8">Oxygen (O)</option>
+                <option value="9">Fluorine (F)</option>
+                <option value="10">Neon (Ne)</option>
+                <option value="11">Sodium (Na)</option>
+                <option value="12">Magnesium (Mg)</option>
+                <option value="13">Aluminum (Al)</option>
+                <option value="14">Silicon (Si)</option>
+                <option value="15">Phosphorus (P)</option>
+                <option value="16">Sulfur (S)</option>
+                <option value="17">Chlorine (Cl)</option>
+                <option value="18">Argon (Ar)</option>
+                <option value="19">Potassium (K)</option>
+                <option value="20">Calcium (Ca)</option>
+            </select>
+        </div>
+    </div>
+
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="material-symbols-outlined">dehaze</span>
+    </button>
+
+    <script>
+        // A-Frame component to animate rotation for electron shells
+        AFRAME.registerComponent('orbit-anim', {
+            schema: { speed: { type: 'number', default: 10 } },
+            tick: function (time, timeDelta) {
+                const rot = this.el.getAttribute('rotation');
+                this.el.setAttribute('rotation', {
+                    x: rot.x,
+                    y: (rot.y + this.data.speed * timeDelta / 1000) % 360,
+                    z: rot.z
+                });
+            }
+        });
+
+        // Set default element on page load
+        window.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('elementSelector').value = '6'; // Carbon
+            changeElement();
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggler = document.getElementById('sidebar-toggle');
+            sidebar.classList.toggle('open');
+            sidebarToggler.classList.toggle('off');
+        }
+
+        function changeEnvironment() {
+            const environment = document.getElementById('environmentSelector').value;
+            const scene = document.querySelector('a-scene');
+            scene.setAttribute('environment', `preset: ${environment}`);
+        }
+
+        const elements = [
+            { symbol: 'H', name: 'Hydrogen', config: [1] },
+            { symbol: 'He', name: 'Helium', config: [2] },
+            { symbol: 'Li', name: 'Lithium', config: [2, 1] },
+            { symbol: 'Be', name: 'Beryllium', config: [2, 2] },
+            { symbol: 'B', name: 'Boron', config: [2, 3] },
+            { symbol: 'C', name: 'Carbon', config: [2, 4] },
+            { symbol: 'N', name: 'Nitrogen', config: [2, 5] },
+            { symbol: 'O', name: 'Oxygen', config: [2, 6] },
+            { symbol: 'F', name: 'Fluorine', config: [2, 7] },
+            { symbol: 'Ne', name: 'Neon', config: [2, 8] },
+            { symbol: 'Na', name: 'Sodium', config: [2, 8, 1] },
+            { symbol: 'Mg', name: 'Magnesium', config: [2, 8, 2] },
+            { symbol: 'Al', name: 'Aluminum', config: [2, 8, 3] },
+            { symbol: 'Si', name: 'Silicon', config: [2, 8, 4] },
+            { symbol: 'P', name: 'Phosphorus', config: [2, 8, 5] },
+            { symbol: 'S', name: 'Sulfur', config: [2, 8, 6] },
+            { symbol: 'Cl', name: 'Chlorine', config: [2, 8, 7] },
+            { symbol: 'Ar', name: 'Argon', config: [2, 8, 8] },
+            { symbol: 'K', name: 'Potassium', config: [2, 8, 8, 1] },
+            { symbol: 'Ca', name: 'Calcium', config: [2, 8, 8, 2] },
+        ];
+
+        function changeElement() {
+            const idx = parseInt(document.getElementById('elementSelector').value, 10) - 1;
+            const element = elements[idx];
+            const scene = document.querySelector('a-scene');
+            // Remove old rings and electrons
+            Array.from(document.querySelectorAll('.ring, .electron, .element-label')).forEach(e => e.parentNode.removeChild(e));
+
+            // Add element label above nucleus
+            const label = document.createElement('a-text');
+            label.setAttribute('value', `${element.name} (${element.symbol})`);
+            label.setAttribute('position', '0 3.5 0');
+            label.setAttribute('align', 'center');
+            label.setAttribute('color', 'white');
+            label.setAttribute('class', 'element-label');
+            label.setAttribute('side', 'double');
+            scene.appendChild(label);
+
+            const totalElectrons = element.config.reduce((a, b) => a + b, 0);
+            const configString = element.config.join('-');
+            const nucleusText = document.createElement('a-text');
+            nucleusText.setAttribute('value', `${totalElectrons} electrons | Config: ${configString}`);
+            nucleusText.setAttribute('position', '0 2 1.05'); // Move in front of the sphere
+            nucleusText.setAttribute('align', 'center');
+            nucleusText.setAttribute('color', 'white');
+            nucleusText.setAttribute('width', 4); // Make text larger
+            nucleusText.setAttribute('side', 'double');
+            nucleusText.setAttribute('class', 'element-label');
+            scene.appendChild(nucleusText);
+
+            // Draw rings and electrons
+            let radiusBase = 1.5;
+            for (let shell = 0; shell < element.config.length; shell++) {
+                const electrons = element.config[shell];
+                const ringRadius = radiusBase + shell * 0.8;
+                // Draw ring
+                const ring = document.createElement('a-torus');
+                ring.setAttribute('position', `0 2 0`);
+                ring.setAttribute('radius', ringRadius);
+                ring.setAttribute('radius-tubular', 0.01);
+                ring.setAttribute('segments-radial', 36);
+                ring.setAttribute('segments-tubular', 100);
+                ring.setAttribute('rotation', '-90 0 0');
+                ring.setAttribute('color', '#aaa');
+                ring.setAttribute('class', 'ring');
+                scene.appendChild(ring);
+
+                const shellEntity = document.createElement('a-entity');
+                shellEntity.setAttribute('class', 'electron-shell');
+                shellEntity.setAttribute('rotation', '0 0 0');
+                shellEntity.setAttribute('orbit-anim', `speed: ${(shell + 1) * 50}`); // Custom component for animation
+                scene.appendChild(shellEntity);
+                // Place electrons
+                for (let e = 0; e < electrons; e++) {
+                    const angle = (2 * Math.PI * e) / electrons;
+                    const x = ringRadius * Math.cos(angle);
+                    const z = ringRadius * Math.sin(angle);
+                    const electron = document.createElement('a-sphere');
+                    electron.setAttribute('position', `${x} 0 ${z}`); // y=0 relative to shellEntity
+                    electron.setAttribute('radius', '0.08');
+                    electron.setAttribute('color', '#00eaff');
+                    electron.setAttribute('class', 'electron');
+                    shellEntity.appendChild(electron);
+                }
+                shellEntity.setAttribute('position', `0 2 0`);
+            }
+        }
+    </script>
+    <a-scene environment="preset: forest">
+        <a-entity camera look-controls="enabled: false"
+            orbit-controls="target: 0 2 0; minDistance: 2; maxDistance: 180; initialPosition: 0 3 5; rotateSpeed: 0.5">
+        </a-entity>
+
+        <!--Nucleus-->
+        <a-sphere position="0 2 0" color="orange" radius="1"></a-sphere>
+    </a-scene>
+</body>
+
+</html>
