@@ -7,7 +7,7 @@ Venixxino is an educational web application designed to help visualize the elect
 [![Preview Website](https://img.shields.io/badge/Preview-GitHub%20Pages-blue?logo=github)](https://V-Play-Games.github.io/Venixxino/)
 
 ## Demo Video
-[![Demo Video](https://img.shields.io/badge/Watch%20Demo-Video-blue)](https://hc-cdn.hel1.your-objectstorage.com/s/v3/0982ea41d87ae655372ed087dc16c4b8cfcfb3c7_screen_recording_2025-06-11_164821.mp4)
+[![Demo Video](https://img.shields.io/badge/Watch%20Demo-Video-blue)](https://hc-cdn.hel1.your-objectstorage.com/s/v3/24dcd1fdd07d0a0d610442f9644a863098ddb4ad_screen_recording_2025-06-26_003738.mp4)
 
 ## Demo Screenshots
 
