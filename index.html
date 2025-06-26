@@ -127,6 +127,13 @@
                 <option value="20">Calcium (Ca)</option>
             </select>
         </div>
+
+        <h3>Electron Speed</h3>
+        <div>
+            <label for="electronSpeedControl">Speed Multiplier:</label>
+            <input type="range" id="electronSpeedControl" min="0.1" max="3" step="0.1" value="1" onchange="updateElectronSpeed()" oninput="updateSpeedDisplay()">
+            <span id="speedValue">1.0x</span>
+        </div>
     </div>
 
     <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">
@@ -167,39 +174,54 @@
         }
 
         const elements = [
-            { symbol: 'H', name: 'Hydrogen', config: [1] },
-            { symbol: 'He', name: 'Helium', config: [2] },
-            { symbol: 'Li', name: 'Lithium', config: [2, 1] },
-            { symbol: 'Be', name: 'Beryllium', config: [2, 2] },
-            { symbol: 'B', name: 'Boron', config: [2, 3] },
-            { symbol: 'C', name: 'Carbon', config: [2, 4] },
-            { symbol: 'N', name: 'Nitrogen', config: [2, 5] },
-            { symbol: 'O', name: 'Oxygen', config: [2, 6] },
-            { symbol: 'F', name: 'Fluorine', config: [2, 7] },
-            { symbol: 'Ne', name: 'Neon', config: [2, 8] },
-            { symbol: 'Na', name: 'Sodium', config: [2, 8, 1] },
-            { symbol: 'Mg', name: 'Magnesium', config: [2, 8, 2] },
-            { symbol: 'Al', name: 'Aluminum', config: [2, 8, 3] },
-            { symbol: 'Si', name: 'Silicon', config: [2, 8, 4] },
-            { symbol: 'P', name: 'Phosphorus', config: [2, 8, 5] },
-            { symbol: 'S', name: 'Sulfur', config: [2, 8, 6] },
-            { symbol: 'Cl', name: 'Chlorine', config: [2, 8, 7] },
-            { symbol: 'Ar', name: 'Argon', config: [2, 8, 8] },
-            { symbol: 'K', name: 'Potassium', config: [2, 8, 8, 1] },
-            { symbol: 'Ca', name: 'Calcium', config: [2, 8, 8, 2] },
+            { symbol: 'H', name: 'Hydrogen', config: [1], radius: 120 },
+            { symbol: 'He', name: 'Helium', config: [2], radius: 140 },
+            { symbol: 'Li', name: 'Lithium', config: [2, 1], radius: 182 },
+            { symbol: 'Be', name: 'Beryllium', config: [2, 2], radius: 153 },
+            { symbol: 'B', name: 'Boron', config: [2, 3], radius: 192 },
+            { symbol: 'C', name: 'Carbon', config: [2, 4], radius: 170 },
+            { symbol: 'N', name: 'Nitrogen', config: [2, 5], radius: 155 },
+            { symbol: 'O', name: 'Oxygen', config: [2, 6], radius: 152 },
+            { symbol: 'F', name: 'Fluorine', config: [2, 7], radius: 147 },
+            { symbol: 'Ne', name: 'Neon', config: [2, 8], radius: 154 },
+            { symbol: 'Na', name: 'Sodium', config: [2, 8, 1], radius: 227 },
+            { symbol: 'Mg', name: 'Magnesium', config: [2, 8, 2], radius: 173 },
+            { symbol: 'Al', name: 'Aluminum', config: [2, 8, 3], radius: 184 },
+            { symbol: 'Si', name: 'Silicon', config: [2, 8, 4], radius: 210 },
+            { symbol: 'P', name: 'Phosphorus', config: [2, 8, 5], radius: 180 },
+            { symbol: 'S', name: 'Sulfur', config: [2, 8, 6], radius: 180 },
+            { symbol: 'Cl', name: 'Chlorine', config: [2, 8, 7], radius: 175 },
+            { symbol: 'Ar', name: 'Argon', config: [2, 8, 8], radius: 188 },
+            { symbol: 'K', name: 'Potassium', config: [2, 8, 8, 1], radius: 275 },
+            { symbol: 'Ca', name: 'Calcium', config: [2, 8, 8, 2], radius: 231 },
         ];
 
         function changeElement() {
             const idx = parseInt(document.getElementById('elementSelector').value, 10) - 1;
             const element = elements[idx];
             const scene = document.querySelector('a-scene');
-            // Remove old rings and electrons
-            Array.from(document.querySelectorAll('.ring, .electron, .element-label')).forEach(e => e.parentNode.removeChild(e));
+
+            // Calculate size scale factor based on atomic radius
+            // Use Carbon as the reference element (radius 170pm)
+            const REFERENCE_RADIUS = 170; // Carbon's radius in pm
+            const scaleFactor = element.radius / REFERENCE_RADIUS;
+            const nucleusRadius = 0.6 * scaleFactor;
+
+            // Remove old rings, electrons and nucleus
+            Array.from(document.querySelectorAll('.ring, .electron, .element-label, .nucleus')).forEach(e => e.parentNode.removeChild(e));
+
+            // Create new nucleus with appropriate size
+            const nucleus = document.createElement('a-sphere');
+            nucleus.setAttribute('position', '0 2 0');
+            nucleus.setAttribute('color', 'orange');
+            nucleus.setAttribute('radius', nucleusRadius);
+            nucleus.setAttribute('class', 'nucleus');
+            scene.appendChild(nucleus);
 
             // Add element label above nucleus
             const label = document.createElement('a-text');
             label.setAttribute('value', `${element.name} (${element.symbol})`);
-            label.setAttribute('position', '0 3.5 0');
+            label.setAttribute('position', `0 ${3.5 + (scaleFactor - 1)} 0`);
             label.setAttribute('align', 'center');
             label.setAttribute('color', 'white');
             label.setAttribute('class', 'element-label');
@@ -209,8 +231,8 @@
             const totalElectrons = element.config.reduce((a, b) => a + b, 0);
             const configString = element.config.join('-');
             const nucleusText = document.createElement('a-text');
-            nucleusText.setAttribute('value', `${totalElectrons} electrons | Config: ${configString}`);
-            nucleusText.setAttribute('position', '0 2 1.05'); // Move in front of the sphere
+            nucleusText.setAttribute('value', `${totalElectrons} electrons | Config: ${configString} | Radius: ${element.radius}pm`);
+            nucleusText.setAttribute('position', `0 ${2 + nucleusRadius + 0.2} 1.05`); // Adjust position based on nucleus size
             nucleusText.setAttribute('align', 'center');
             nucleusText.setAttribute('color', 'white');
             nucleusText.setAttribute('width', 4); // Make text larger
@@ -219,7 +241,6 @@
             scene.appendChild(nucleusText);
 
             // Draw rings and electrons
-            let radiusBase = 1.5;
             for (let shell = 0; shell < element.config.length; shell++) {
                 const electrons = element.config[shell];
                 const ringRadius = radiusBase + shell * 0.8;
@@ -254,6 +275,22 @@
                 }
                 shellEntity.setAttribute('position', `0 2 0`);
             }
+        }
+
+        function updateSpeedDisplay() {
+            const speedControl = document.getElementById('electronSpeedControl');
+            const speedValue = document.getElementById('speedValue');
+            speedValue.innerText = `${speedControl.value}x`;
+        }
+
+        function updateElectronSpeed() {
+            const speedMultiplier = parseFloat(document.getElementById('electronSpeedControl').value);
+            const shells = document.querySelectorAll('.electron-shell');
+            shells.forEach((shell, index) => {
+                const baseSpeed = (index + 1) * 20;
+                const newSpeed = baseSpeed * speedMultiplier;
+                shell.setAttribute('orbit-anim', `speed: ${newSpeed}`);
+            });
         }
     </script>
     <a-scene environment="preset: forest">
