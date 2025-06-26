@@ -174,26 +174,26 @@
         }
 
         const elements = [
-            { symbol: 'H', name: 'Hydrogen', config: [1], radius: 120 },
-            { symbol: 'He', name: 'Helium', config: [2], radius: 140 },
-            { symbol: 'Li', name: 'Lithium', config: [2, 1], radius: 182 },
-            { symbol: 'Be', name: 'Beryllium', config: [2, 2], radius: 153 },
-            { symbol: 'B', name: 'Boron', config: [2, 3], radius: 192 },
-            { symbol: 'C', name: 'Carbon', config: [2, 4], radius: 170 },
-            { symbol: 'N', name: 'Nitrogen', config: [2, 5], radius: 155 },
-            { symbol: 'O', name: 'Oxygen', config: [2, 6], radius: 152 },
-            { symbol: 'F', name: 'Fluorine', config: [2, 7], radius: 147 },
-            { symbol: 'Ne', name: 'Neon', config: [2, 8], radius: 154 },
-            { symbol: 'Na', name: 'Sodium', config: [2, 8, 1], radius: 227 },
-            { symbol: 'Mg', name: 'Magnesium', config: [2, 8, 2], radius: 173 },
-            { symbol: 'Al', name: 'Aluminum', config: [2, 8, 3], radius: 184 },
-            { symbol: 'Si', name: 'Silicon', config: [2, 8, 4], radius: 210 },
-            { symbol: 'P', name: 'Phosphorus', config: [2, 8, 5], radius: 180 },
-            { symbol: 'S', name: 'Sulfur', config: [2, 8, 6], radius: 180 },
-            { symbol: 'Cl', name: 'Chlorine', config: [2, 8, 7], radius: 175 },
-            { symbol: 'Ar', name: 'Argon', config: [2, 8, 8], radius: 188 },
-            { symbol: 'K', name: 'Potassium', config: [2, 8, 8, 1], radius: 275 },
-            { symbol: 'Ca', name: 'Calcium', config: [2, 8, 8, 2], radius: 231 },
+            { symbol: 'H', name: 'Hydrogen', config: [1], radius: 53 },
+            { symbol: 'He', name: 'Helium', config: [2], radius: 31 },
+            { symbol: 'Li', name: 'Lithium', config: [2, 1], radius: 167 },
+            { symbol: 'Be', name: 'Beryllium', config: [2, 2], radius: 112 },
+            { symbol: 'B', name: 'Boron', config: [2, 3], radius: 87 },
+            { symbol: 'C', name: 'Carbon', config: [2, 4], radius: 67 },
+            { symbol: 'N', name: 'Nitrogen', config: [2, 5], radius: 56 },
+            { symbol: 'O', name: 'Oxygen', config: [2, 6], radius: 48 },
+            { symbol: 'F', name: 'Fluorine', config: [2, 7], radius: 42 },
+            { symbol: 'Ne', name: 'Neon', config: [2, 8], radius: 38 },
+            { symbol: 'Na', name: 'Sodium', config: [2, 8, 1], radius: 190 },
+            { symbol: 'Mg', name: 'Magnesium', config: [2, 8, 2], radius: 145 },
+            { symbol: 'Al', name: 'Aluminum', config: [2, 8, 3], radius: 118 },
+            { symbol: 'Si', name: 'Silicon', config: [2, 8, 4], radius: 111 },
+            { symbol: 'P', name: 'Phosphorus', config: [2, 8, 5], radius: 98 },
+            { symbol: 'S', name: 'Sulfur', config: [2, 8, 6], radius: 88 },
+            { symbol: 'Cl', name: 'Chlorine', config: [2, 8, 7], radius: 79 },
+            { symbol: 'Ar', name: 'Argon', config: [2, 8, 8], radius: 71 },
+            { symbol: 'K', name: 'Potassium', config: [2, 8, 8, 1], radius: 243 },
+            { symbol: 'Ca', name: 'Calcium', config: [2, 8, 8, 2], radius: 194 },
         ];
 
         function changeElement() {
@@ -205,7 +205,14 @@
             // Use Carbon as the reference element (radius 170pm)
             const REFERENCE_RADIUS = 170; // Carbon's radius in pm
             const scaleFactor = element.radius / REFERENCE_RADIUS;
-            const nucleusRadius = 0.6 * scaleFactor;
+            // Apply power function to exaggerate size differences
+            const enhancedScaleFactor = Math.pow(scaleFactor, 1.5);
+            const nucleusRadius = 0.6 * enhancedScaleFactor;
+
+            // Ensure minimum spacing between nucleus and first shell
+            // Smaller atoms need proportionally larger spacing
+            const minScaleFactor = Math.max(enhancedScaleFactor, 0.6); // Lower minimum for more contrast
+            const spacingAdjustment = 1 + (1 - Math.min(enhancedScaleFactor, 1)) * 0.5; // More adjustment for smaller atoms
 
             // Remove old rings, electrons and nucleus
             Array.from(document.querySelectorAll('.ring, .electron, .element-label, .nucleus')).forEach(e => e.parentNode.removeChild(e));
@@ -241,9 +248,12 @@
             scene.appendChild(nucleusText);
 
             // Draw rings and electrons
+            let radiusBase = 1.5 * minScaleFactor * spacingAdjustment;
             for (let shell = 0; shell < element.config.length; shell++) {
                 const electrons = element.config[shell];
-                const ringRadius = radiusBase + shell * 0.8;
+                // For smaller atoms, increase the shell spacing relative to nucleus size
+                const shellSpacing = 0.8 * (shell === 0 ? spacingAdjustment * 1.2 : 1);
+                const ringRadius = radiusBase + shell * shellSpacing * minScaleFactor;
                 // Draw ring
                 const ring = document.createElement('a-torus');
                 ring.setAttribute('position', `0 2 0`);
@@ -259,7 +269,7 @@
                 const shellEntity = document.createElement('a-entity');
                 shellEntity.setAttribute('class', 'electron-shell');
                 shellEntity.setAttribute('rotation', '0 0 0');
-                shellEntity.setAttribute('orbit-anim', `speed: ${(shell + 1) * 50}`); // Custom component for animation
+                shellEntity.setAttribute('orbit-anim', `speed: ${(shell + 1) * 20}`); // Custom component for animation
                 scene.appendChild(shellEntity);
                 // Place electrons
                 for (let e = 0; e < electrons; e++) {
@@ -268,13 +278,16 @@
                     const z = ringRadius * Math.sin(angle);
                     const electron = document.createElement('a-sphere');
                     electron.setAttribute('position', `${x} 0 ${z}`); // y=0 relative to shellEntity
-                    electron.setAttribute('radius', '0.08');
+                    electron.setAttribute('radius', 0.08);
                     electron.setAttribute('color', '#00eaff');
                     electron.setAttribute('class', 'electron');
                     shellEntity.appendChild(electron);
                 }
                 shellEntity.setAttribute('position', `0 2 0`);
             }
+
+            // Apply current electron speed setting
+            updateElectronSpeed();
         }
 
         function updateSpeedDisplay() {
