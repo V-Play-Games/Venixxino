@@ -196,39 +196,240 @@
             { symbol: 'Ca', name: 'Calcium', config: [2, 8, 8, 2], radius: 194 },
         ];
 
+        // Track previous element for animations
+        let previousElement = null;
+
         function changeElement() {
             const idx = parseInt(document.getElementById('elementSelector').value, 10) - 1;
             const element = elements[idx];
             const scene = document.querySelector('a-scene');
 
-            // Calculate size scale factor based on atomic radius
-            // Use Carbon as the reference element (radius 170pm)
-            const REFERENCE_RADIUS = 170; // Carbon's radius in pm
-            const scaleFactor = element.radius / REFERENCE_RADIUS;
-            // Apply power function to exaggerate size differences
-            const enhancedScaleFactor = Math.pow(scaleFactor, 1.5);
-            const nucleusRadius = 0.6 * enhancedScaleFactor;
+            // Fixed nucleus size for all elements
+            const nucleusRadius = 0.6;
 
-            // Ensure minimum spacing between nucleus and first shell
-            // Smaller atoms need proportionally larger spacing
-            const minScaleFactor = Math.max(enhancedScaleFactor, 0.6); // Lower minimum for more contrast
-            const spacingAdjustment = 1 + (1 - Math.min(enhancedScaleFactor, 1)) * 0.5; // More adjustment for smaller atoms
+            // Store existing nucleus for animation
+            const existingNucleus = document.querySelector('.nucleus');
 
-            // Remove old rings, electrons and nucleus
-            Array.from(document.querySelectorAll('.ring, .electron, .element-label, .nucleus')).forEach(e => e.parentNode.removeChild(e));
+            // If this is not the first element change, animate the transition
+            if (previousElement !== null && existingNucleus) {
+                // No need to animate nucleus size since all are the same now
 
-            // Create new nucleus with appropriate size
-            const nucleus = document.createElement('a-sphere');
-            nucleus.setAttribute('position', '0 2 0');
-            nucleus.setAttribute('color', 'orange');
-            nucleus.setAttribute('radius', nucleusRadius);
-            nucleus.setAttribute('class', 'nucleus');
-            scene.appendChild(nucleus);
+                // Remove old labels
+                Array.from(document.querySelectorAll('.element-label')).forEach(e => e.parentNode.removeChild(e));
+
+                // Handle different number of shells
+                const currentShells = document.querySelectorAll('.electron-shell');
+                const currentShellCount = currentShells.length;
+                const newShellCount = element.config.length;
+
+                // Calculate new shell radii for animations
+                let newRadii = [];
+                for (let shell = 0; shell < element.config.length; shell++) {
+                    // Use fixed size increments for shell spacing
+                    const ringRadius = 1.2 + shell * 0.7 * Math.sqrt(shell + 1);
+                    newRadii.push(ringRadius);
+                }
+
+                // Animate existing rings and electrons
+                const rings = document.querySelectorAll('.ring');
+                rings.forEach((ring, index) => {
+                    if (index < newShellCount) {
+                        // Animate existing rings to new positions
+                        animateProperty(ring, 'radius', ring.getAttribute('radius'), newRadii[index], 800, 'easeOutQuad');
+                    } else {
+                        // Fade out extra shells
+                        let opacity = 1;
+                        const startTime = performance.now();
+                        const duration = 500;
+
+                        function fadeOut(currentTime) {
+                            const elapsed = currentTime - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            opacity = 1 - progress;
+
+                            ring.setAttribute('opacity', opacity);
+                            if (currentShells[index]) {
+                                currentShells[index].setAttribute('opacity', opacity);
+                            }
+
+                            if (progress < 1) {
+                                requestAnimationFrame(fadeOut);
+                            } else {
+                                // Remove after animation completes
+                                ring.parentNode.removeChild(ring);
+                                if (currentShells[index]) {
+                                    currentShells[index].parentNode.removeChild(currentShells[index]);
+                                }
+                            }
+                        }
+
+                        requestAnimationFrame(fadeOut);
+                    }
+                });
+
+                // Update electron positions within shells that still exist
+                currentShells.forEach((shellEntity, shellIndex) => {
+                    if (shellIndex < newShellCount) {
+                        const ringRadius = newRadii[shellIndex];
+                        const electrons = element.config[shellIndex];
+                        const existingElectrons = shellEntity.querySelectorAll('.electron');
+
+                        // Check if we need to add or remove electrons
+                        if (existingElectrons.length !== electrons) {
+                            // Remove all existing electrons from this shell
+                            existingElectrons.forEach(e => e.parentNode.removeChild(e));
+
+                            // Create new electrons with initial small size
+                            for (let e = 0; e < electrons; e++) {
+                                const angle = (2 * Math.PI * e) / electrons;
+                                const x = ringRadius * Math.cos(angle);
+                                const z = ringRadius * Math.sin(angle);
+                                const electron = document.createElement('a-sphere');
+                                electron.setAttribute('position', `${x} 0 ${z}`);
+                                electron.setAttribute('radius', 0.001); // Start small
+                                electron.setAttribute('color', '#00eaff');
+                                electron.setAttribute('class', 'electron');
+                                electron.setAttribute('opacity', 0.2); // Start transparent
+                                shellEntity.appendChild(electron);
+
+                                // Animate the new electron appearing
+                                setTimeout(() => {
+                                    animateProperty(electron, 'radius', 0.001, 0.08, 400, 'easeOutElastic');
+                                    animateProperty(electron, 'opacity', 0.2, 1, 400);
+                                }, e * 50); // Stagger the appearance
+                            }
+                        } else {
+                            // Reposition existing electrons
+                            existingElectrons.forEach((electron, idx) => {
+                                const angle = (2 * Math.PI * idx) / electrons;
+                                const newX = ringRadius * Math.cos(angle);
+                                const newZ = ringRadius * Math.sin(angle);
+                                const currentPos = electron.getAttribute('position');
+                                animateProperty(electron, 'position',
+                                    {x: currentPos.x, y: currentPos.y, z: currentPos.z},
+                                    {x: newX, y: 0, z: newZ},
+                                    800, 'easeOutQuad');
+                            });
+                        }
+                    }
+                });
+
+                // Add any new shells needed
+                for (let shell = currentShellCount; shell < newShellCount; shell++) {
+                    const electrons = element.config[shell];
+                    const ringRadius = newRadii[shell];
+
+                    // Create ring with initial small radius that matches the correct final size
+                    const ring = document.createElement('a-torus');
+                    ring.setAttribute('position', `0 2 0`);
+                    ring.setAttribute('radius', 0.001); // Start tiny but will animate to correct size
+                    ring.setAttribute('radius-tubular', 0.01);
+                    ring.setAttribute('segments-radial', 36);
+                    ring.setAttribute('segments-tubular', 100);
+                    ring.setAttribute('rotation', '-90 0 0');
+                    ring.setAttribute('color', '#aaa');
+                    ring.setAttribute('class', 'ring');
+                    ring.setAttribute('opacity', 0.2);
+                    scene.appendChild(ring);
+
+                    // Store the target radius to ensure consistent animation
+                    ring.targetRadius = ringRadius;
+
+                    // Animate ring growing with more controlled timing
+                    setTimeout(() => {
+                        animateProperty(ring, 'radius', 0.001, ring.targetRadius, 800, 'easeOutQuad');
+                        animateProperty(ring, 'opacity', 0.2, 1, 800);
+                    }, shell * 150);
+
+                    const shellEntity = document.createElement('a-entity');
+                    shellEntity.setAttribute('class', 'electron-shell');
+                    shellEntity.setAttribute('rotation', '0 0 0');
+                    shellEntity.setAttribute('orbit-anim', `speed: ${(shell + 1) * 20}`);
+                    shellEntity.setAttribute('position', `0 2 0`);
+                    shellEntity.setAttribute('opacity', 0.2); // Start semi-transparent
+                    scene.appendChild(shellEntity);
+
+                    // Animate opacity
+                    setTimeout(() => {
+                        animateProperty(shellEntity, 'opacity', 0.2, 1, 800);
+                    }, shell * 200);
+
+                    // Create electrons with delay for a cascade effect
+                    for (let e = 0; e < electrons; e++) {
+                        setTimeout(() => {
+                            const angle = (2 * Math.PI * e) / electrons;
+                            const x = ringRadius * Math.cos(angle);
+                            const z = ringRadius * Math.sin(angle);
+                            const electron = document.createElement('a-sphere');
+                            electron.setAttribute('position', `${x} 0 ${z}`);
+                            electron.setAttribute('radius', 0.001); // Start tiny
+                            electron.setAttribute('color', '#00eaff');
+                            electron.setAttribute('class', 'electron');
+                            electron.setAttribute('opacity', 0.2);
+                            shellEntity.appendChild(electron);
+
+                            // Animate electron growing
+                            animateProperty(electron, 'radius', 0.001, 0.08, 400, 'easeOutElastic');
+                            animateProperty(electron, 'opacity', 0.2, 1, 400);
+                        }, (shell * 200) + (e * 50)); // Cascade delay
+                    }
+                }
+            } else {
+                // First load, no animation needed
+                // Remove old rings, electrons and nucleus
+                Array.from(document.querySelectorAll('.ring, .electron, .element-label, .nucleus')).forEach(e => e.parentNode.removeChild(e));
+
+                // Create new nucleus with appropriate size
+                const nucleus = document.createElement('a-sphere');
+                nucleus.setAttribute('position', '0 2 0');
+                nucleus.setAttribute('color', 'orange');
+                nucleus.setAttribute('radius', nucleusRadius);
+                nucleus.setAttribute('class', 'nucleus');
+                scene.appendChild(nucleus);
+
+                // Draw rings and electrons
+                for (let shell = 0; shell < element.config.length; shell++) {
+                    const electrons = element.config[shell];
+                    // Use fixed size increments for shell spacing
+                    const ringRadius = 1.2 + shell * 0.7 * Math.sqrt(shell + 1);
+
+                    // Draw ring
+                    const ring = document.createElement('a-torus');
+                    ring.setAttribute('position', `0 2 0`);
+                    ring.setAttribute('radius', ringRadius);
+                    ring.setAttribute('radius-tubular', 0.01);
+                    ring.setAttribute('segments-radial', 36);
+                    ring.setAttribute('segments-tubular', 100);
+                    ring.setAttribute('rotation', '-90 0 0');
+                    ring.setAttribute('color', '#aaa');
+                    ring.setAttribute('class', 'ring');
+                    scene.appendChild(ring);
+
+                    const shellEntity = document.createElement('a-entity');
+                    shellEntity.setAttribute('class', 'electron-shell');
+                    shellEntity.setAttribute('rotation', '0 0 0');
+                    shellEntity.setAttribute('orbit-anim', `speed: ${(shell + 1) * 20}`); // Custom component for animation
+                    shellEntity.setAttribute('position', `0 2 0`);
+                    scene.appendChild(shellEntity);
+                    // Place electrons
+                    for (let e = 0; e < electrons; e++) {
+                        const angle = (2 * Math.PI * e) / electrons;
+                        const x = ringRadius * Math.cos(angle);
+                        const z = ringRadius * Math.sin(angle);
+                        const electron = document.createElement('a-sphere');
+                        electron.setAttribute('position', `${x} 0 ${z}`);
+                        electron.setAttribute('radius', 0.08);
+                        electron.setAttribute('color', '#00eaff');
+                        electron.setAttribute('class', 'electron');
+                        shellEntity.appendChild(electron);
+                    }
+                }
+            }
 
             // Add element label above nucleus
             const label = document.createElement('a-text');
             label.setAttribute('value', `${element.name} (${element.symbol})`);
-            label.setAttribute('position', `0 ${3.5 + (scaleFactor - 1)} 0`);
+            label.setAttribute('position', `0 3.5 0`); // Fixed position for all elements
             label.setAttribute('align', 'center');
             label.setAttribute('color', 'white');
             label.setAttribute('class', 'element-label');
@@ -239,7 +440,7 @@
             const configString = element.config.join('-');
             const nucleusText = document.createElement('a-text');
             nucleusText.setAttribute('value', `${totalElectrons} electrons | Config: ${configString} | Radius: ${element.radius}pm`);
-            nucleusText.setAttribute('position', `0 ${2 + nucleusRadius + 0.2} 1.05`); // Adjust position based on nucleus size
+            nucleusText.setAttribute('position', `0 ${2 + nucleusRadius + 0.2} 1.05`);
             nucleusText.setAttribute('align', 'center');
             nucleusText.setAttribute('color', 'white');
             nucleusText.setAttribute('width', 4); // Make text larger
@@ -247,47 +448,53 @@
             nucleusText.setAttribute('class', 'element-label');
             scene.appendChild(nucleusText);
 
-            // Draw rings and electrons
-            let radiusBase = 1.5 * minScaleFactor * spacingAdjustment;
-            for (let shell = 0; shell < element.config.length; shell++) {
-                const electrons = element.config[shell];
-                // For smaller atoms, increase the shell spacing relative to nucleus size
-                const shellSpacing = 0.8 * (shell === 0 ? spacingAdjustment * 1.2 : 1);
-                const ringRadius = radiusBase + shell * shellSpacing * minScaleFactor;
-                // Draw ring
-                const ring = document.createElement('a-torus');
-                ring.setAttribute('position', `0 2 0`);
-                ring.setAttribute('radius', ringRadius);
-                ring.setAttribute('radius-tubular', 0.01);
-                ring.setAttribute('segments-radial', 36);
-                ring.setAttribute('segments-tubular', 100);
-                ring.setAttribute('rotation', '-90 0 0');
-                ring.setAttribute('color', '#aaa');
-                ring.setAttribute('class', 'ring');
-                scene.appendChild(ring);
+            // Update electron speed setting
+            updateElectronSpeed();
 
-                const shellEntity = document.createElement('a-entity');
-                shellEntity.setAttribute('class', 'electron-shell');
-                shellEntity.setAttribute('rotation', '0 0 0');
-                shellEntity.setAttribute('orbit-anim', `speed: ${(shell + 1) * 20}`); // Custom component for animation
-                scene.appendChild(shellEntity);
-                // Place electrons
-                for (let e = 0; e < electrons; e++) {
-                    const angle = (2 * Math.PI * e) / electrons;
-                    const x = ringRadius * Math.cos(angle);
-                    const z = ringRadius * Math.sin(angle);
-                    const electron = document.createElement('a-sphere');
-                    electron.setAttribute('position', `${x} 0 ${z}`); // y=0 relative to shellEntity
-                    electron.setAttribute('radius', 0.08);
-                    electron.setAttribute('color', '#00eaff');
-                    electron.setAttribute('class', 'electron');
-                    shellEntity.appendChild(electron);
+            // Remember this element for next animation
+            previousElement = element;
+        }
+
+        // Animation helper function
+        function animateProperty(element, property, start, end, duration, easing = 'easeOutQuad') {
+            const startTime = performance.now();
+
+            // Easing functions
+            const easings = {
+                linear: t => t,
+                easeOutQuad: t => t * (2 - t),
+                easeInOutQuad: t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+                easeOutElastic: t => {
+                    const p = 0.3;
+                    return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
                 }
-                shellEntity.setAttribute('position', `0 2 0`);
+            };
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easedProgress = easings[easing](progress);
+                const value = start + (end - start) * easedProgress;
+
+                // For position attributes, we need to handle them specially
+                if (property === 'position') {
+                    const currentPos = element.getAttribute('position');
+                    if (typeof end === 'object') {
+                        const posX = typeof end.x !== 'undefined' ? start.x + (end.x - start.x) * easedProgress : currentPos.x;
+                        const posY = typeof end.y !== 'undefined' ? start.y + (end.y - start.y) * easedProgress : currentPos.y;
+                        const posZ = typeof end.z !== 'undefined' ? start.z + (end.z - start.z) * easedProgress : currentPos.z;
+                        element.setAttribute(property, `${posX} ${posY} ${posZ}`);
+                    }
+                } else {
+                    element.setAttribute(property, value);
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
             }
 
-            // Apply current electron speed setting
-            updateElectronSpeed();
+            requestAnimationFrame(update);
         }
 
         function updateSpeedDisplay() {
