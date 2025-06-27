@@ -158,7 +158,7 @@
         <h3>Electron Speed</h3>
         <div>
             <label for="electronSpeedControl">Speed Multiplier:</label>
-            <input type="range" id="electronSpeedControl" min="0.1" max="3" step="0.1" value="1" onchange="updateElectronSpeed()" oninput="updateSpeedDisplay()">
+            <input type="range" id="electronSpeedControl" min="0.1" max="3" step="0.1" value="1" oninput="updateSpeedDisplay()">
             <span id="speedValue">1.0x</span>
         </div>
     </div>
@@ -514,7 +514,7 @@
                 `Radius: ${element.radius}pm`
             ];
 
-            const radius = 2.0; // Radius of the text circle
+            const radius = 1.2; // Radius of the text circle
             const yPosition = 2 + nucleusRadius + 0.2; // Y position of the text (same as before)
             const textWidth = 2.5; // Width for each text segment
 
@@ -594,6 +594,7 @@
             const speedControl = document.getElementById('electronSpeedControl');
             const speedValue = document.getElementById('speedValue');
             speedValue.innerText = `${speedControl.value}x`;
+            updateElectronSpeed();
         }
 
         function updateElectronSpeed() {
