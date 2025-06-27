@@ -504,15 +504,42 @@
 
             const totalElectrons = element.config.reduce((a, b) => a + b, 0);
             const configString = element.config.join('-');
-            const nucleusText = document.createElement('a-text');
-            nucleusText.setAttribute('value', `Protons: ${element.protons} | Neutrons: ${element.neutrons} | Electrons: ${totalElectrons} | Config: ${configString} | Radius: ${element.radius}pm`);
-            nucleusText.setAttribute('position', `0 ${2 + nucleusRadius + 0.2} 1.05`);
-            nucleusText.setAttribute('align', 'center');
-            nucleusText.setAttribute('color', 'white');
-            nucleusText.setAttribute('width', 4); // Make text larger
-            nucleusText.setAttribute('side', 'double');
-            nucleusText.setAttribute('class', 'element-label');
-            scene.appendChild(nucleusText);
+
+            // Create curved text around the nucleus instead of a single text element
+            const textSegments = [
+                `Protons: ${element.protons}`,
+                `Neutrons: ${element.neutrons}`,
+                `Electrons: ${totalElectrons}`,
+                `Config: ${configString}`,
+                `Radius: ${element.radius}pm`
+            ];
+
+            const radius = 2.0; // Radius of the text circle
+            const yPosition = 2 + nucleusRadius + 0.2; // Y position of the text (same as before)
+            const textWidth = 2.5; // Width for each text segment
+
+            // Position each text segment around a circle
+            textSegments.forEach((segment, index) => {
+                const angle = (index / textSegments.length) * Math.PI * 2;
+                const x = Math.sin(angle) * radius;
+                const z = Math.cos(angle) * radius;
+
+                // Create the text element
+                const textElement = document.createElement('a-text');
+                textElement.setAttribute('value', segment);
+                textElement.setAttribute('position', `${x} ${yPosition} ${z}`);
+
+                // Make text tangential to the circle (perpendicular to the radius)
+                // Add 180 degrees to make text face outward and be readable from outside
+                textElement.setAttribute('rotation', `0 ${(angle * (180 / Math.PI))} 0`);
+
+                textElement.setAttribute('align', 'center');
+                textElement.setAttribute('color', 'white');
+                textElement.setAttribute('width', textWidth);
+                textElement.setAttribute('side', 'double');
+                textElement.setAttribute('class', 'element-label');
+                scene.appendChild(textElement);
+            });
 
             // Update electron speed setting
             updateElectronSpeed();
