@@ -237,26 +237,26 @@
         }
 
         const elements = [
-            { symbol: 'H', name: 'Hydrogen', config: [1], radius: 53 },
-            { symbol: 'He', name: 'Helium', config: [2], radius: 31 },
-            { symbol: 'Li', name: 'Lithium', config: [2, 1], radius: 167 },
-            { symbol: 'Be', name: 'Beryllium', config: [2, 2], radius: 112 },
-            { symbol: 'B', name: 'Boron', config: [2, 3], radius: 87 },
-            { symbol: 'C', name: 'Carbon', config: [2, 4], radius: 67 },
-            { symbol: 'N', name: 'Nitrogen', config: [2, 5], radius: 56 },
-            { symbol: 'O', name: 'Oxygen', config: [2, 6], radius: 48 },
-            { symbol: 'F', name: 'Fluorine', config: [2, 7], radius: 42 },
-            { symbol: 'Ne', name: 'Neon', config: [2, 8], radius: 38 },
-            { symbol: 'Na', name: 'Sodium', config: [2, 8, 1], radius: 190 },
-            { symbol: 'Mg', name: 'Magnesium', config: [2, 8, 2], radius: 145 },
-            { symbol: 'Al', name: 'Aluminum', config: [2, 8, 3], radius: 118 },
-            { symbol: 'Si', name: 'Silicon', config: [2, 8, 4], radius: 111 },
-            { symbol: 'P', name: 'Phosphorus', config: [2, 8, 5], radius: 98 },
-            { symbol: 'S', name: 'Sulfur', config: [2, 8, 6], radius: 88 },
-            { symbol: 'Cl', name: 'Chlorine', config: [2, 8, 7], radius: 79 },
-            { symbol: 'Ar', name: 'Argon', config: [2, 8, 8], radius: 71 },
-            { symbol: 'K', name: 'Potassium', config: [2, 8, 8, 1], radius: 243 },
-            { symbol: 'Ca', name: 'Calcium', config: [2, 8, 8, 2], radius: 194 },
+            { symbol: 'H', name: 'Hydrogen', config: [1], radius: 53, protons: 1, neutrons: 0 },
+            { symbol: 'He', name: 'Helium', config: [2], radius: 31, protons: 2, neutrons: 2 },
+            { symbol: 'Li', name: 'Lithium', config: [2, 1], radius: 167, protons: 3, neutrons: 4 },
+            { symbol: 'Be', name: 'Beryllium', config: [2, 2], radius: 112, protons: 4, neutrons: 5 },
+            { symbol: 'B', name: 'Boron', config: [2, 3], radius: 87, protons: 5, neutrons: 6 },
+            { symbol: 'C', name: 'Carbon', config: [2, 4], radius: 67, protons: 6, neutrons: 6 },
+            { symbol: 'N', name: 'Nitrogen', config: [2, 5], radius: 56, protons: 7, neutrons: 7 },
+            { symbol: 'O', name: 'Oxygen', config: [2, 6], radius: 48, protons: 8, neutrons: 8 },
+            { symbol: 'F', name: 'Fluorine', config: [2, 7], radius: 42, protons: 9, neutrons: 10 },
+            { symbol: 'Ne', name: 'Neon', config: [2, 8], radius: 38, protons: 10, neutrons: 10 },
+            { symbol: 'Na', name: 'Sodium', config: [2, 8, 1], radius: 190, protons: 11, neutrons: 12 },
+            { symbol: 'Mg', name: 'Magnesium', config: [2, 8, 2], radius: 145, protons: 12, neutrons: 12 },
+            { symbol: 'Al', name: 'Aluminum', config: [2, 8, 3], radius: 118, protons: 13, neutrons: 14 },
+            { symbol: 'Si', name: 'Silicon', config: [2, 8, 4], radius: 111, protons: 14, neutrons: 14 },
+            { symbol: 'P', name: 'Phosphorus', config: [2, 8, 5], radius: 98, protons: 15, neutrons: 16 },
+            { symbol: 'S', name: 'Sulfur', config: [2, 8, 6], radius: 88, protons: 16, neutrons: 16 },
+            { symbol: 'Cl', name: 'Chlorine', config: [2, 8, 7], radius: 79, protons: 17, neutrons: 18 },
+            { symbol: 'Ar', name: 'Argon', config: [2, 8, 8], radius: 71, protons: 18, neutrons: 22 },
+            { symbol: 'K', name: 'Potassium', config: [2, 8, 8, 1], radius: 243, protons: 19, neutrons: 20 },
+            { symbol: 'Ca', name: 'Calcium', config: [2, 8, 8, 2], radius: 194, protons: 20, neutrons: 20 },
         ];
 
         // Track previous element for animations
@@ -505,7 +505,7 @@
             const totalElectrons = element.config.reduce((a, b) => a + b, 0);
             const configString = element.config.join('-');
             const nucleusText = document.createElement('a-text');
-            nucleusText.setAttribute('value', `${totalElectrons} electrons | Config: ${configString} | Radius: ${element.radius}pm`);
+            nucleusText.setAttribute('value', `Protons: ${element.protons} | Neutrons: ${element.neutrons} | Electrons: ${totalElectrons} | Config: ${configString} | Radius: ${element.radius}pm`);
             nucleusText.setAttribute('position', `0 ${2 + nucleusRadius + 0.2} 1.05`);
             nucleusText.setAttribute('align', 'center');
             nucleusText.setAttribute('color', 'white');
