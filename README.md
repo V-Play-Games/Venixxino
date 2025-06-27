@@ -18,12 +18,17 @@ Venixxino is an educational web application designed to help visualize the elect
 ![Screenshot 3](https://hc-cdn.hel1.your-objectstorage.com/s/v3/7e3e3cf246abd9369b477e5ac6ccb1b8ddb6bc83_screenshot_2025-06-26_003548.png)
 
 ## Features
-- **Interactive 3D Atom Viewer:** Visualizes atoms with animated electron orbits and labeled nucleus.
-- **Element Selector:** Choose any element from Hydrogen (1) to Calcium (20) using a sidebar dropdown.
-- **Dynamic Visualization:** Automatically updates the number of shells, electrons, and their positions based on the selected element's electronic configuration.
-- **Educational Labels:** Displays the element's name, symbol, total number of electrons, and electronic configuration directly in the 3D scene.
-- **Customizable Environment:** Change the 3D background environment for a more immersive experience.
-- **Kid-Friendly UI:** Simple sidebar controls and clear visuals designed for young learners.
+- **Interactive 3D Atom Viewer:** Visualizes atoms with animated electron orbits and labeled nucleus, allowing users to explore atomic structures from any angle.
+- **Complete Element Coverage:** Explore all elements from Hydrogen (1) to Calcium (20) with accurate electronic configurations.
+- **Dynamic Electron Animations:** Watch as electrons smoothly transition when changing elements, with visually pleasing animations that illustrate how electron shells fill.
+- **Educational Labels:** Displays the element's name, symbol, atomic number, neutron count, proton count, and electronic configuration directly in the 3D scene.
+- **Customizable Environment:** Choose from 18 different immersive 3D environments including Forest, Moon, Egypt, Tron, and more.
+- **Informative Fun Facts:** Reveals interesting facts about each element when selected, making learning more engaging.
+- **Adjustable Electron Speed:** Control the animation speed of electrons for better visualization and understanding.
+- **Intuitive Camera Controls:** Easily orbit, pan, and zoom to explore atoms from any perspective.
+- **Interactive Sidebar:** Clean, collapsible interface that doesn't interfere with the visualization experience.
+- **Educational Value:** Perfect teaching tool for chemistry students to understand electronic structure.
+- **Kid-Friendly UI:** Simple controls and clear visuals make complex topics accessible to young learners.
 
 ## How It Works
 - The sidebar on the top right lets users select an element and change the environment.
@@ -40,4 +45,3 @@ Venixxino is an educational web application designed to help visualize the elect
 
 ## License
 This project is for educational and non-commercial use.
-
