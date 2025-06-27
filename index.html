@@ -130,29 +130,11 @@
         </div>
         <h3>Element Selector</h3>
         <div>
-            <label for="elementSelector">Element:</label>
-            <select id="elementSelector" onchange="changeElement()">
-                <option value="1">Hydrogen (H)</option>
-                <option value="2">Helium (He)</option>
-                <option value="3">Lithium (Li)</option>
-                <option value="4">Beryllium (Be)</option>
-                <option value="5">Boron (B)</option>
-                <option value="6">Carbon (C)</option>
-                <option value="7">Nitrogen (N)</option>
-                <option value="8">Oxygen (O)</option>
-                <option value="9">Fluorine (F)</option>
-                <option value="10">Neon (Ne)</option>
-                <option value="11">Sodium (Na)</option>
-                <option value="12">Magnesium (Mg)</option>
-                <option value="13">Aluminum (Al)</option>
-                <option value="14">Silicon (Si)</option>
-                <option value="15">Phosphorus (P)</option>
-                <option value="16">Sulfur (S)</option>
-                <option value="17">Chlorine (Cl)</option>
-                <option value="18">Argon (Ar)</option>
-                <option value="19">Potassium (K)</option>
-                <option value="20">Calcium (Ca)</option>
-            </select>
+            <label for="elementSelector">Element (1-20):</label>
+            <input type="range" id="elementSelector" min="1" max="20" step="1" value="6" oninput="changeElement()">
+            <div>
+                <span id="elementName">Carbon (C)</span>
+            </div>
         </div>
 
         <h3>Electron Speed</h3>
@@ -180,6 +162,9 @@
                 });
             }
         });
+
+        // Track animation IDs to cancel them when needed
+        const activeAnimations = new Map();
 
         // Fun facts for each element
         const elementFacts = [
@@ -552,6 +537,25 @@
         function animateProperty(element, property, start, end, duration, easing = 'easeOutQuad') {
             const startTime = performance.now();
 
+            // Cancel any existing animation for this element and property
+            const animKey = `${element.id || element.outerHTML.slice(0, 30)}_${property}`;
+            if (activeAnimations.has(animKey)) {
+                cancelAnimationFrame(activeAnimations.get(animKey));
+
+                if (property === 'position') {
+                    const currentPos = element.getAttribute('position');
+                    if (typeof end === 'object') {
+                        const posX = typeof end.x !== 'undefined' ? end.x : currentPos.x;
+                        const posY = typeof end.y !== 'undefined' ? end.y : currentPos.y;
+                        const posZ = typeof end.z !== 'undefined' ? end.z : currentPos.z;
+                        element.setAttribute(property, `${posX} ${posY} ${posZ}`);
+                    }
+                } else {
+                    element.setAttribute(property, end);
+                }
+                return;
+            }
+
             // Easing functions
             const easings = {
                 linear: t => t,
@@ -583,11 +587,16 @@
                 }
 
                 if (progress < 1) {
-                    requestAnimationFrame(update);
+                    const animId = requestAnimationFrame(update);
+                    activeAnimations.set(animKey, animId);
+                } else {
+                    // Animation complete, remove from tracking
+                    activeAnimations.delete(animKey);
                 }
             }
 
-            requestAnimationFrame(update);
+            const animId = requestAnimationFrame(update);
+            activeAnimations.set(animKey, animId);
         }
 
         function updateSpeedDisplay() {
@@ -605,6 +614,13 @@
                 const newSpeed = baseSpeed * speedMultiplier;
                 shell.setAttribute('orbit-anim', `speed: ${newSpeed}`);
             });
+            showElementName();
+        }
+
+        function showElementName() {
+            const idx = parseInt(document.getElementById('elementSelector').value, 10) - 1;
+            const elementNameDisplay = document.getElementById('elementName');
+            elementNameDisplay.textContent = `${elements[idx].name} (${elements[idx].symbol})`;
         }
     </script>
     <a-scene environment="preset: forest">
