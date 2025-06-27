@@ -67,7 +67,34 @@
             font-size: 20px;
             cursor: pointer;
         }
+
+        /* Fun Fact Popup Styling */
+        .fun-fact-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #00eaff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 18px;
+            z-index: 2000;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(0, 234, 255, 0.5);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .fun-fact-popup.show {
+            opacity: 1;
+        }
     </style>
+
+    <!-- Fun Fact Popup -->
+    <div id="funFactPopup" class="fun-fact-popup"></div>
 
     <div class="sidebar" id="sidebar">
         <h2>Controls</h2>
@@ -154,6 +181,42 @@
             }
         });
 
+        // Fun facts for each element
+        const elementFacts = [
+            "Hydrogen makes up 75% of the mass of the universe!", // H
+            "Helium was discovered on the Sun before it was found on Earth!", // He
+            "Lithium is used in batteries and to treat bipolar disorder!", // Li
+            "Beryllium is stronger than steel but lighter than aluminum!", // Be
+            "Boron is essential for plant growth!", // B
+            "Carbon forms the basis of all known life on Earth!", // C
+            "Nitrogen makes up 78% of Earth's atmosphere!", // N
+            "Oxygen was discovered independently by Carl Wilhelm Scheele and Joseph Priestley!", // O
+            "Fluorine is the most reactive element in the periodic table!", // F
+            "Neon signs glow red-orange in their natural state!", // Ne
+            "Sodium explodes violently when it comes in contact with water!", // Na
+            "Magnesium is essential for over 300 biochemical reactions in the body!", // Mg
+            "Aluminum was once more valuable than gold!", // Al
+            "Silicon makes up about 28% of the Earth's crust!", // Si
+            "Phosphorus glows in the dark and was once called 'cold fire'!", // P
+            "Sulfur compounds are responsible for the smell of rotten eggs!", // S
+            "Chlorine is used to keep swimming pools clean!", // Cl
+            "Argon gets its name from the Greek word for 'lazy' because it's so unreactive!", // Ar
+            "Potassium is essential for proper nerve and muscle function!", // K
+            "Calcium is vital for bone strength!" // Ca
+        ];
+
+        // Function to show fun fact popup
+        function showFunFact(elementIndex) {
+            const funFactPopup = document.getElementById('funFactPopup');
+            funFactPopup.textContent = elementFacts[elementIndex];
+            funFactPopup.classList.add('show');
+
+            // Hide the popup after 3 seconds
+            setTimeout(() => {
+                funFactPopup.classList.remove('show');
+            }, 3000);
+        }
+
         // Set default element on page load
         window.addEventListener('DOMContentLoaded', function () {
             document.getElementById('elementSelector').value = '6'; // Carbon
@@ -203,6 +266,9 @@
             const idx = parseInt(document.getElementById('elementSelector').value, 10) - 1;
             const element = elements[idx];
             const scene = document.querySelector('a-scene');
+
+            // Show fun fact popup for the selected element
+            showFunFact(idx);
 
             // Fixed nucleus size for all elements
             const nucleusRadius = 0.6;
